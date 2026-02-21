@@ -143,9 +143,34 @@ app.post('/api/expenses', async (req, res) => {
   finally { if (connection) await connection.end(); }
 });
 
-// Tutte le altre rotte rimangono invariate rispetto alla versione precedente
+app.delete('/api/expenses/:id', async (req, res) => {
+  let connection;
+  try {
+    connection = await mysql.createConnection(getDbConfig(req));
+    await connection.query('DELETE FROM expenses WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+  finally { if (connection) await connection.end(); }
+});
+
+// --- VACATIONS ---
+app.get('/api/vacations', async (req, res) => {
+  let connection;
+  try {
+    connection = await mysql.createConnection(getDbConfig(req));
+    const [rows] = await connection.query('SELECT DISTINCT vacationName as name FROM expenses WHERE vacationName IS NOT NULL AND vacationName != ""');
+    res.json(rows.map((r, i) => ({ id: String(i), name: r.name })));
+  } catch (error) { res.status(500).json({ error: error.message }); }
+  finally { if (connection) await connection.end(); }
+});
+
+app.post('/api/vacations/get-or-create', async (req, res) => {
+  const { name } = req.body;
+  res.json({ id: Math.random().toString(36).substring(2, 11), name });
+});
+
 // --- SANDRO ACCOUNT ---
-app.get('/api/sandro', async (req, res) => {
+app.get('/api/sandro-expenses', async (req, res) => {
   let connection;
   try {
     connection = await mysql.createConnection(getDbConfig(req));
@@ -155,7 +180,7 @@ app.get('/api/sandro', async (req, res) => {
   finally { if (connection) await connection.end(); }
 });
 
-app.get('/api/sandro/settlements', async (req, res) => {
+app.get('/api/sandro-settlements', async (req, res) => {
   let connection;
   try {
     connection = await mysql.createConnection(getDbConfig(req));
@@ -165,7 +190,7 @@ app.get('/api/sandro/settlements', async (req, res) => {
   finally { if (connection) await connection.end(); }
 });
 
-app.post('/api/sandro/settle', async (req, res) => {
+app.post('/api/sandro-expenses/settle', async (req, res) => {
   let connection;
   try {
     connection = await mysql.createConnection(getDbConfig(req));
@@ -181,7 +206,21 @@ app.post('/api/sandro/settle', async (req, res) => {
   finally { if (connection) await connection.end(); }
 });
 
-app.delete('/api/sandro/:id', async (req, res) => {
+app.post('/api/sandro-expenses', async (req, res) => {
+  let connection;
+  try {
+    const { id, amount, description, date } = req.body;
+    connection = await mysql.createConnection(getDbConfig(req));
+    await connection.query(
+      'INSERT INTO sandro_expenses (id, amount, description, date) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE amount = ?, description = ?, date = ?',
+      [id, amount, description, date, amount, description, date]
+    );
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+  finally { if (connection) await connection.end(); }
+});
+
+app.delete('/api/sandro-expenses/:id', async (req, res) => {
   let connection;
   try {
     connection = await mysql.createConnection(getDbConfig(req));
@@ -191,7 +230,7 @@ app.delete('/api/sandro/:id', async (req, res) => {
   finally { if (connection) await connection.end(); }
 });
 
-app.get('/api/shopping', async (req, res) => {
+app.get('/api/shopping-list', async (req, res) => {
   let connection;
   try {
     connection = await mysql.createConnection(getDbConfig(req));
@@ -201,7 +240,7 @@ app.get('/api/shopping', async (req, res) => {
   finally { if (connection) await connection.end(); }
 });
 
-app.post('/api/shopping', async (req, res) => {
+app.post('/api/shopping-list', async (req, res) => {
   let connection;
   try {
     const { id, name, checked, orderIndex } = req.body;
@@ -215,7 +254,7 @@ app.post('/api/shopping', async (req, res) => {
   finally { if (connection) await connection.end(); }
 });
 
-app.delete('/api/shopping/:id', async (req, res) => {
+app.delete('/api/shopping-list/:id', async (req, res) => {
   let connection;
   try {
     connection = await mysql.createConnection(getDbConfig(req));
@@ -225,7 +264,7 @@ app.delete('/api/shopping/:id', async (req, res) => {
   finally { if (connection) await connection.end(); }
 });
 
-app.get('/api/shopping-frequency', async (req, res) => {
+app.get('/api/shopping-list/frequency', async (req, res) => {
   let connection;
   try {
     connection = await mysql.createConnection(getDbConfig(req));
@@ -235,7 +274,7 @@ app.get('/api/shopping-frequency', async (req, res) => {
   finally { if (connection) await connection.end(); }
 });
 
-app.post('/api/shopping-frequency', async (req, res) => {
+app.post('/api/shopping-list/frequency', async (req, res) => {
   let connection;
   try {
     const { name } = req.body;

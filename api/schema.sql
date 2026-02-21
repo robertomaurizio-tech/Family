@@ -1,7 +1,7 @@
 
 -- Creazione Database
-CREATE DATABASE IF NOT EXISTS family_finance;
-USE family_finance;
+CREATE DATABASE IF NOT EXISTS familycash_db;
+USE familycash_db;
 
 -- Tabella Categorie
 CREATE TABLE IF NOT EXISTS categories (
@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     description TEXT,
     date DATE NOT NULL,
     isExtra BOOLEAN DEFAULT FALSE,
+    vacationName VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE SET NULL
 );
 
@@ -33,6 +34,22 @@ CREATE TABLE IF NOT EXISTS shopping_list (
 CREATE TABLE IF NOT EXISTS shopping_frequency (
     name VARCHAR(255) PRIMARY KEY,
     count INT DEFAULT 1
+);
+
+-- Tabella Spese Sandro
+CREATE TABLE IF NOT EXISTS sandro_expenses (
+    id VARCHAR(36) PRIMARY KEY,
+    amount DECIMAL(10,2) NOT NULL,
+    description TEXT,
+    date DATE NOT NULL,
+    is_settled BOOLEAN DEFAULT FALSE
+);
+
+-- Tabella Liquidazioni Sandro
+CREATE TABLE IF NOT EXISTS sandro_settlements (
+    id VARCHAR(36) PRIMARY KEY,
+    amount DECIMAL(10,2) NOT NULL,
+    date DATETIME NOT NULL
 );
 
 -- Inserimento Categoria Default

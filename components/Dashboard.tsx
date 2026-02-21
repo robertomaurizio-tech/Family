@@ -337,27 +337,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Legend & Tips */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-6 bg-slate-900 rounded-[2rem] text-white flex items-center gap-6 shadow-xl shadow-slate-200">
-           <div className="text-4xl bg-white/10 w-16 h-16 rounded-3xl flex items-center justify-center">💡</div>
-           <div>
-              <p className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-1">Nota Metodologica</p>
-              <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                Le statistiche in questa pagina escludono i record marcati come "Vacanza" per garantirti una visione realistica dei costi di mantenimento mensili della famiglia.
-              </p>
-           </div>
-        </div>
-        <div className="p-6 bg-indigo-50 rounded-[2rem] border border-indigo-100 flex items-center gap-6">
-           <div className="text-4xl bg-white w-16 h-16 rounded-3xl flex items-center justify-center shadow-sm">📈</div>
-           <div>
-              <p className="text-xs font-black text-indigo-700 uppercase tracking-widest mb-1">Obiettivo Risparmio</p>
-              <p className="text-xs text-indigo-800/70 font-medium leading-relaxed">
-                Il confronto MTD ti permette di capire in tempo reale se questo mese stai spendendo più velocemente rispetto allo stesso periodo dell'anno scorso.
-              </p>
-           </div>
-        </div>
-      </div>
     </div>
   );
 };
