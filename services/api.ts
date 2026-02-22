@@ -345,5 +345,86 @@ export const api = {
       console.error("Connection Test Error:", err);
       return { success: false, message: "Impossibile contattare il server API all'indirizzo configurato." };
     }
+  },
+
+  // Vehicles
+  getVehicles: async (): Promise<Vehicle[]> => {
+    const config = getDbConfig();
+    if (config.mode === 'localstorage') {
+      const data = localStorage.getItem('ffh_ls_vehicles');
+      return data ? JSON.parse(data) : [];
+    }
+    const res = await fetch(getApiUrl('/vehicles'), { headers: getMysqlHeaders() });
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  saveVehicle: async (vehicle: Vehicle): Promise<void> => {
+    const config = getDbConfig();
+    if (config.mode === 'localstorage') {
+      const data = localStorage.getItem('ffh_ls_vehicles');
+      const items: Vehicle[] = data ? JSON.parse(data) : [];
+      const idx = items.findIndex(i => i.id === vehicle.id);
+      if (idx >= 0) items[idx] = vehicle; else items.push(vehicle);
+      localStorage.setItem('ffh_ls_vehicles', JSON.stringify(items));
+      return;
+    }
+    await fetch(getApiUrl('/vehicles'), {
+      method: 'POST', 
+      headers: getMysqlHeaders(), 
+      body: JSON.stringify(vehicle)
+    });
+  },
+
+  deleteVehicle: async (id: string): Promise<void> => {
+    const config = getDbConfig();
+    if (config.mode === 'localstorage') {
+      const data = localStorage.getItem('ffh_ls_vehicles');
+      const items: Vehicle[] = data ? JSON.parse(data) : [];
+      localStorage.setItem('ffh_ls_vehicles', JSON.stringify(items.filter(i => i.id !== id)));
+      return;
+    }
+    await fetch(getApiUrl(`/vehicles/${id}`), { method: 'DELETE', headers: getMysqlHeaders() });
+  },
+
+  // Vehicle Maintenance
+  getVehicleMaintenance: async (vehicleId: string): Promise<VehicleMaintenance[]> => {
+    const config = getDbConfig();
+    if (config.mode === 'localstorage') {
+      const data = localStorage.getItem('ffh_ls_vehicle_maintenance');
+      const items: VehicleMaintenance[] = data ? JSON.parse(data) : [];
+      return items.filter(i => i.vehicleId === vehicleId);
+    }
+    const res = await fetch(getApiUrl(`/vehicle-maintenance/${vehicleId}`), { headers: getMysqlHeaders() });
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  saveVehicleMaintenance: async (maintenance: VehicleMaintenance): Promise<void> => {
+    const config = getDbConfig();
+    if (config.mode === 'localstorage') {
+      const data = localStorage.getItem('ffh_ls_vehicle_maintenance');
+      const items: VehicleMaintenance[] = data ? JSON.parse(data) : [];
+      const idx = items.findIndex(i => i.id === maintenance.id);
+      if (idx >= 0) items[idx] = maintenance; else items.push(maintenance);
+      localStorage.setItem('ffh_ls_vehicle_maintenance', JSON.stringify(items));
+      return;
+    }
+    await fetch(getApiUrl('/vehicle-maintenance'), {
+      method: 'POST', 
+      headers: getMysqlHeaders(), 
+      body: JSON.stringify(maintenance)
+    });
+  },
+
+  deleteVehicleMaintenance: async (id: string): Promise<void> => {
+    const config = getDbConfig();
+    if (config.mode === 'localstorage') {
+      const data = localStorage.getItem('ffh_ls_vehicle_maintenance');
+      const items: VehicleMaintenance[] = data ? JSON.parse(data) : [];
+      localStorage.setItem('ffh_ls_vehicle_maintenance', JSON.stringify(items.filter(i => i.id !== id)));
+      return;
+    }
+    await fetch(getApiUrl(`/vehicle-maintenance/${id}`), { method: 'DELETE', headers: getMysqlHeaders() });
   }
 };

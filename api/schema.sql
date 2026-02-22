@@ -52,5 +52,29 @@ CREATE TABLE IF NOT EXISTS sandro_settlements (
     date DATETIME NOT NULL
 );
 
+-- Tabella Veicoli
+CREATE TABLE IF NOT EXISTS vehicles (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    plate VARCHAR(20),
+    brand VARCHAR(100),
+    model VARCHAR(100),
+    year INT,
+    notes TEXT
+);
+
+-- Tabella Manutenzione Veicoli
+CREATE TABLE IF NOT EXISTS vehicle_maintenance (
+    id VARCHAR(36) PRIMARY KEY,
+    vehicleId VARCHAR(36) NOT NULL,
+    type VARCHAR(50) NOT NULL, -- 'maintenance', 'repair', 'tax', 'insurance', 'other'
+    date DATE NOT NULL,
+    cost DECIMAL(10,2) NOT NULL,
+    description TEXT,
+    km INT,
+    next_due_date DATE,
+    FOREIGN KEY (vehicleId) REFERENCES vehicles(id) ON DELETE CASCADE
+);
+
 -- Inserimento Categoria Default
 INSERT IGNORE INTO categories (id, name, color) VALUES ('7', 'Altro', '#64748b');

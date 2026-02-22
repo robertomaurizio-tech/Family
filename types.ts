@@ -71,3 +71,24 @@ export interface CategoryStats {
   value: number;
   color: string;
 }
+
+export interface Vehicle {
+  id: string;
+  name: string;
+  plate?: string;
+  brand?: string;
+  model?: string;
+  year?: number;
+  notes?: string;
+}
+
+export interface VehicleMaintenance {
+  id: string;
+  vehicleId: string;
+  type: 'maintenance' | 'repair' | 'tax' | 'insurance' | 'other';
+  date: string;
+  cost: number;
+  description?: string;
+  km?: number;
+  next_due_date?: string;
+}

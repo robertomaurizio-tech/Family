@@ -9,6 +9,9 @@ import ShoppingList from './components/ShoppingList';
 import SandroAccount from './components/SandroAccount';
 import Settings from './components/Settings';
 
+import CarManager from './components/CarManager';
+import MonthlyReport from './components/MonthlyReport';
+
 const App: React.FC = () => {
   return (
     <HashRouter>
@@ -19,6 +22,8 @@ const App: React.FC = () => {
           <Route path="/lista-spesa" element={<ShoppingList />} />
           <Route path="/conto-sandro" element={<SandroAccount />} />
           <Route path="/categorie" element={<CategoryManager />} />
+          <Route path="/garage" element={<CarManager />} />
+          <Route path="/report/:year/:month" element={<MonthlyReport />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>

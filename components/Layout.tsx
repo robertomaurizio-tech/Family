@@ -12,6 +12,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { path: '/lista-spesa', label: 'Lista Spesa', icon: '🛒' },
     { path: '/conto-sandro', label: 'Conto Sandro', icon: '👤' },
     { path: '/categorie', label: 'Categorie', icon: '🏷️' },
+    { path: '/garage', label: 'Garage', icon: '🚗' },
     { path: '/settings', label: 'Impostazioni', icon: '⚙️' },
   ];
 

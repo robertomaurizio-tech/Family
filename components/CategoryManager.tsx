@@ -8,6 +8,7 @@ const CategoryManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [color, setColor] = useState('#6366f1');
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,30 +37,45 @@ const CategoryManager: React.FC = () => {
     loadCategories();
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || saving) return;
     
     setSaving(true);
     setError(null);
     try {
+      const catId = editingId || generateId();
       const newCat: Category = {
-        id: generateId(),
+        id: catId,
         name: name.trim(),
         color
       };
       await api.saveCategory(newCat);
-      setName('');
+      resetForm();
       await loadCategories();
     } catch (err: any) {
-      console.error("Add category error:", err);
+      console.error("Save category error:", err);
       setError(err.message || "Impossibile salvare la categoria.");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleEdit = (cat: Category) => {
+    setName(cat.name);
+    setColor(cat.color);
+    setEditingId(cat.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const resetForm = () => {
+    setName('');
+    setColor('#6366f1');
+    setEditingId(null);
+  };
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering edit
     if (id === '7') {
       alert("La categoria predefinita 'Altro' è necessaria per il sistema.");
       return;
@@ -72,6 +88,7 @@ const CategoryManager: React.FC = () => {
       setError(null);
       try {
         await api.deleteCategory(id);
+        if (editingId === id) resetForm();
         const updated = await api.getCategories();
         setCategories(updated);
       } catch (err: any) {
@@ -97,11 +114,11 @@ const CategoryManager: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm h-fit">
+        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm h-fit sticky top-4">
           <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <span className="text-indigo-600">✨</span> Crea Nuova Etichetta
+            <span className="text-indigo-600">{editingId ? '✏️' : '✨'}</span> {editingId ? 'Modifica Categoria' : 'Crea Nuova Etichetta'}
           </h3>
-          <form onSubmit={handleAdd} className="space-y-6">
+          <form onSubmit={handleSave} className="space-y-6">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nome Categoria</label>
               <input
@@ -125,13 +142,24 @@ const CategoryManager: React.FC = () => {
                 <span className="text-sm font-mono text-slate-600 font-bold uppercase">{color}</span>
               </div>
             </div>
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95 disabled:opacity-50"
-            >
-              {saving ? 'Registrazione...' : 'Aggiungi al Database'}
-            </button>
+            <div className="flex gap-3">
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-xl transition-all"
+                >
+                  Annulla
+                </button>
+              )}
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95 disabled:opacity-50"
+              >
+                {saving ? 'Salvataggio...' : (editingId ? 'Aggiorna' : 'Aggiungi al Database')}
+              </button>
+            </div>
           </form>
         </div>
 
@@ -152,7 +180,11 @@ const CategoryManager: React.FC = () => {
                 </div>
               )}
               {categories.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between p-4 border border-slate-100 rounded-xl group hover:bg-slate-50 hover:border-slate-200 transition-all">
+                <div 
+                  key={cat.id} 
+                  onClick={() => handleEdit(cat)}
+                  className={`flex items-center justify-between p-4 border rounded-xl group hover:bg-slate-50 transition-all cursor-pointer ${editingId === cat.id ? 'border-indigo-500 ring-2 ring-indigo-100 bg-indigo-50/30' : 'border-slate-100 hover:border-slate-200'}`}
+                >
                   <div className="flex items-center gap-4">
                     <div 
                       className="w-4 h-4 rounded-full shadow-inner ring-2 ring-white" 
@@ -162,7 +194,7 @@ const CategoryManager: React.FC = () => {
                   </div>
                   {cat.id !== '7' && (
                     <button 
-                      onClick={() => handleDelete(cat.id)} 
+                      onClick={(e) => handleDelete(cat.id, e)} 
                       className="text-slate-300 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50"
                       title="Elimina categoria"
                     >

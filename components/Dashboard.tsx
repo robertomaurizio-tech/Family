@@ -245,7 +245,18 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <BarChart 
+                data={stats.chartData} 
+                margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                onClick={(state) => {
+                  if (state && state.activePayload && state.activePayload.length > 0) {
+                    const { key } = state.activePayload[0].payload;
+                    const [year, month] = key.split('-');
+                    window.location.hash = `#/report/${year}/${month}`;
+                  }
+                }}
+                className="cursor-pointer"
+              >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} />

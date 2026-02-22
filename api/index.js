@@ -98,6 +98,32 @@ const initializeDb = async (connection) => {
     )
   `);
 
+  await connection.query(`
+    CREATE TABLE IF NOT EXISTS vehicles (
+      id VARCHAR(36) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      plate VARCHAR(20),
+      brand VARCHAR(100),
+      model VARCHAR(100),
+      year INT,
+      notes TEXT
+    )
+  `);
+
+  await connection.query(`
+    CREATE TABLE IF NOT EXISTS vehicle_maintenance (
+      id VARCHAR(36) PRIMARY KEY,
+      vehicleId VARCHAR(36) NOT NULL,
+      type VARCHAR(50) NOT NULL,
+      date DATE NOT NULL,
+      cost DECIMAL(10,2) NOT NULL,
+      description TEXT,
+      km INT,
+      next_due_date DATE,
+      FOREIGN KEY (vehicleId) REFERENCES vehicles(id) ON DELETE CASCADE
+    )
+  `);
+
   const [rows] = await connection.query('SELECT id FROM categories WHERE id = "7"');
   if (rows.length === 0) {
     await connection.query('INSERT IGNORE INTO categories (id, name, color) VALUES ("7", "Altro", "#64748b")');
@@ -281,6 +307,76 @@ app.post('/api/shopping-list/frequency', async (req, res) => {
     const cleanName = name.trim().toLowerCase();
     connection = await mysql.createConnection(getDbConfig(req));
     await connection.query('INSERT INTO shopping_frequency (name, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1', [cleanName]);
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+  finally { if (connection) await connection.end(); }
+});
+
+// --- VEHICLES ---
+app.get('/api/vehicles', async (req, res) => {
+  let connection;
+  try {
+    connection = await mysql.createConnection(getDbConfig(req));
+    const [rows] = await connection.query('SELECT * FROM vehicles ORDER BY name ASC');
+    res.json(rows);
+  } catch (error) { res.status(500).json({ error: error.message }); }
+  finally { if (connection) await connection.end(); }
+});
+
+app.post('/api/vehicles', async (req, res) => {
+  let connection;
+  try {
+    const { id, name, plate, brand, model, year, notes } = req.body;
+    connection = await mysql.createConnection(getDbConfig(req));
+    await connection.query(
+      'INSERT INTO vehicles (id, name, plate, brand, model, year, notes) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, plate = ?, brand = ?, model = ?, year = ?, notes = ?',
+      [id, name, plate, brand, model, year, notes, name, plate, brand, model, year, notes]
+    );
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+  finally { if (connection) await connection.end(); }
+});
+
+app.delete('/api/vehicles/:id', async (req, res) => {
+  let connection;
+  try {
+    connection = await mysql.createConnection(getDbConfig(req));
+    await connection.query('DELETE FROM vehicles WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+  finally { if (connection) await connection.end(); }
+});
+
+// --- VEHICLE MAINTENANCE ---
+app.get('/api/vehicle-maintenance/:vehicleId', async (req, res) => {
+  let connection;
+  try {
+    connection = await mysql.createConnection(getDbConfig(req));
+    const [rows] = await connection.query('SELECT * FROM vehicle_maintenance WHERE vehicleId = ? ORDER BY date DESC', [req.params.vehicleId]);
+    res.json(rows.map(r => ({ ...r, date: new Date(r.date).toISOString().split('T')[0], next_due_date: r.next_due_date ? new Date(r.next_due_date).toISOString().split('T')[0] : null })));
+  } catch (error) { res.status(500).json({ error: error.message }); }
+  finally { if (connection) await connection.end(); }
+});
+
+app.post('/api/vehicle-maintenance', async (req, res) => {
+  let connection;
+  try {
+    const { id, vehicleId, type, date, cost, description, km, next_due_date } = req.body;
+    connection = await mysql.createConnection(getDbConfig(req));
+    await connection.query(
+      'INSERT INTO vehicle_maintenance (id, vehicleId, type, date, cost, description, km, next_due_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE vehicleId = ?, type = ?, date = ?, cost = ?, description = ?, km = ?, next_due_date = ?',
+      [id, vehicleId, type, date, cost, description, km, next_due_date, vehicleId, type, date, cost, description, km, next_due_date]
+    );
+    res.json({ success: true });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+  finally { if (connection) await connection.end(); }
+});
+
+app.delete('/api/vehicle-maintenance/:id', async (req, res) => {
+  let connection;
+  try {
+    connection = await mysql.createConnection(getDbConfig(req));
+    await connection.query('DELETE FROM vehicle_maintenance WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (error) { res.status(500).json({ error: error.message }); }
   finally { if (connection) await connection.end(); }
