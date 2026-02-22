@@ -4,11 +4,27 @@ import { DbConfig } from '../types';
 import { getDbConfig, saveDbConfig } from '../config';
 import { api } from '../services/api';
 
+const ICONS = ['🍎', '🚗', '🏠', '🐶', '⚽', '✈️', '🍕', '💻', '🎸'];
+
 const Settings: React.FC = () => {
   const [config, setConfig] = useState<DbConfig>(getDbConfig());
   const [saved, setSaved] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [isTesting, setIsTesting] = useState(false);
+  const [pinSequence, setPinSequence] = useState<number[]>(config.pin ? config.pin.split('').map(Number) : []);
+
+  const handlePinIconClick = (index: number) => {
+    if (pinSequence.length < 4) {
+      const newSeq = [...pinSequence, index];
+      setPinSequence(newSeq);
+      setConfig({...config, pin: newSeq.join('')});
+    }
+  };
+
+  const clearPin = () => {
+    setPinSequence([]);
+    setConfig({...config, pin: ''});
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,6 +151,56 @@ const Settings: React.FC = () => {
                 </div>
               </div>
             )}
+
+            <div className="p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+              <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span>🔒</span> Sicurezza
+              </h3>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Sequenza di Sblocco (4 icone)</label>
+              
+              <div className="flex justify-center gap-2 mb-4">
+                {[0, 1, 2, 3].map(i => (
+                  <div 
+                    key={i} 
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl border transition-all ${
+                      pinSequence[i] !== undefined 
+                        ? 'bg-white border-indigo-200 shadow-sm' 
+                        : 'bg-slate-100 border-transparent text-slate-300'
+                    }`}
+                  >
+                    {pinSequence[i] !== undefined ? ICONS[pinSequence[i]] : '•'}
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 max-w-[200px] mx-auto mb-4">
+                {ICONS.map((icon, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handlePinIconClick(index)}
+                    disabled={pinSequence.length >= 4}
+                    className="w-14 h-14 rounded-xl bg-white border border-slate-200 text-2xl hover:bg-indigo-50 hover:border-indigo-200 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={clearPin}
+                  className="text-xs font-bold text-red-500 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  🗑️ Resetta Sequenza
+                </button>
+              </div>
+
+              <p className="text-[10px] text-slate-400 mt-4 text-center italic">
+                * Lascia la sequenza vuota per disabilitare il blocco all'avvio.
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">

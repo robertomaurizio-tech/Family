@@ -57,6 +57,7 @@ export interface DbConfig {
   database: string;
   port: string;
   apiUrl?: string; // Nuovo campo per l'URL personalizzato
+  pin?: string; // PIN di accesso
 }
 
 export interface MonthlyStats {
